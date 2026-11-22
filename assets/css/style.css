@@ -209,6 +209,28 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   .js .flow__step.is-active { opacity: 1; }
 }
 
+/* Celular: mesmo comportamento do desktop. O título e a barra de etapas ficam fixos no topo e os passos avançam com o scroll. */
+.flow__cta--end { display: none; }
+@media (max-width: 59.99rem) {
+  .flow { padding-block: 0 var(--section); }
+  .flow__grid { display: block; }
+  .flow__aside { position: sticky; top: 0; z-index: 3; gap: 1.125rem; padding-block: calc(var(--header-h) - 1.5rem) 1.25rem; margin-inline: calc(-1 * var(--margin)); padding-inline: var(--margin); background: var(--color-hero); }
+  .flow__aside::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 1.5rem; background: linear-gradient(var(--color-hero), rgba(7, 20, 23, 0)); pointer-events: none; }
+  .flow__aside .h2 { font-size: clamp(1.75rem, 1.2rem + 2.6vw, 2.25rem); }
+  .flow__aside .flow__cta { display: none; }
+  .flow__cta--end { display: inline-flex; margin-top: 1rem; }
+  .flow__rail { display: grid; grid-template-columns: repeat(4, 1fr); position: relative; width: 100%; padding-top: 0.875rem; font-size: 0.9375rem; }
+  .flow__rail::before, .flow__rail::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; }
+  .flow__rail::before { background: rgba(255, 255, 255, 0.16); }
+  .flow__rail::after { background: var(--color-cyan); transform: scaleX(var(--p, 0.25)); transform-origin: left; transition: transform 500ms var(--ease-out); }
+  .flow__rail li { color: var(--color-on-dark-muted); opacity: 0.55; transition: opacity 300ms ease, color 300ms ease; }
+  .flow__rail li.is-active { color: var(--color-on-dark); opacity: 1; }
+  .flow__steps { gap: 0; padding-block: 8vh 4vh; }
+  .flow__step { min-height: 58svh; display: flex; flex-direction: column; justify-content: center; }
+  .js .flow__step { opacity: 0.22; transition: opacity 500ms ease; }
+  .js .flow__step.is-active { opacity: 1; }
+}
+
 /* O método */
 .metodo { padding-block: var(--section); }
 .metodo__grid { display: grid; gap: 3rem var(--gap); }
