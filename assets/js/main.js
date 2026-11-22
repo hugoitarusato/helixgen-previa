@@ -69,7 +69,7 @@
   burger.addEventListener('click', () => setMenu(!menuOpen));
   menu.addEventListener('click', e => { if (e.target.closest('a')) setMenu(false); });
   addEventListener('keydown', e => { if (e.key === 'Escape' && menuOpen) { setMenu(false); burger.focus(); } });
-  matchMedia('(min-width: 60rem)').addEventListener('change', e => { if (e.matches && menuOpen) setMenu(false); });
+  matchMedia('(min-width: 72rem)').addEventListener('change', e => { if (e.matches && menuOpen) setMenu(false); });
 
   /* ---------- títulos: entrada linha a linha com máscara ---------- */
   function split(el) {

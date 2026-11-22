@@ -45,6 +45,12 @@
     <div class="footer__brand">
       <img src="assets/img/logo-helixgen-branco.png" width="843" height="192" alt="HelixGen Laboratório" loading="lazy">
       <p>Precisão que começa no DNA.</p>
+      <div class="footer__legal">
+        <p data-cfg="razaoSocial">LABORATÓRIO HELIXGEN LTDA.</p>
+        <p>CNPJ <span data-cfg="cnpj">58.282.234/0001-59</span></p>
+        <p>Responsável técnico: <span data-cfg="responsavelTecnico">Mateus Silva Cosso Gomes – CRF-MG 47115</span></p>
+        <p data-cfg="endereco">Rua da Bahia, 1032, sala 702, Belo Horizonte, MG, 30160-011</p>
+      </div>
     </div>
     <nav aria-label="Rodapé">${links(RODAPE, 'link')}</nav>
     <div class="footer__col">
@@ -52,10 +58,6 @@
       <a class="link" data-wa href="https://wa.me/553131663505">WhatsApp</a>
       <a class="link" data-mail href="mailto:contato@helixgen.com.br">contato@helixgen.com.br</a>
       <a class="link" data-linkedin href="https://www.linkedin.com/company/helixgen" rel="noopener">LinkedIn</a>
-    </div>
-    <div class="footer__col footer__legal">
-      <p>Responsável técnico<br><span data-cfg="responsavelTecnico">Mateus Silva Cosso Gomes – CRF-MG 47115</span></p>
-      <p><span data-cfg="razaoSocial">LABORATÓRIO HELIXGEN LTDA.</span><br>CNPJ <span data-cfg="cnpj">58.282.234/0001-59</span></p>
     </div>
   </div>
   <div class="wrap footer__base">

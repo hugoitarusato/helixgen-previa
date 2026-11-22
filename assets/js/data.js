@@ -13,6 +13,7 @@ window.HELIXGEN = {
   responsavelTecnico: 'Mateus Silva Cosso Gomes – CRF-MG 47115',
   razaoSocial: 'LABORATÓRIO HELIXGEN LTDA.',
   cnpj: '58.282.234/0001-59',
+  endereco: 'Rua da Bahia, 1032, sala 702, Belo Horizonte, MG, 30160-011',
 
   // Pendências: preencher quando existirem
   portalResultados: '', // endereço público do portal de resultados
