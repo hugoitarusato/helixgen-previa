@@ -415,10 +415,10 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 
 /* Transição entre páginas */
 @view-transition { navigation: auto; }
-::view-transition-old(root) { animation: 260ms ease both vt-out; }
-::view-transition-new(root) { animation: 420ms var(--ease-out) both vt-in; }
-@keyframes vt-out { to { opacity: 0; } }
-@keyframes vt-in { from { opacity: 0; transform: translateY(12px); } }
+/* a página antiga fica no lugar até a nova chegar (sem sumir para o fundo branco) */
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) { animation: 300ms ease both vt-in; }
+@keyframes vt-in { from { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
