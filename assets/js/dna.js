@@ -81,7 +81,9 @@
   const buf = new Float32Array(data);
 
   /* ---------- shaders ---------- */
+  const M = window.HGMorph || { GLSL_ATTR: 'attribute vec4 aS; attribute vec4 aSC; uniform float uMorph;', GLSL_MIX: '', enabled: false };
   const VS = `
+${M.GLSL_ATTR}
 attribute vec3 aA, aN, aB; attribute vec4 aC; attribute vec3 aM;
 uniform float uPhi, uZoom, uFocus, uScale, uDpr, uTime; uniform vec2 uRes, uCenter, uShift;
 varying vec3 vCol; varying float vAlpha, vR, vSize, vKind;
@@ -114,8 +116,10 @@ void main() {
   }
   scr = (scr - uCenter) * uZoom + uCenter;
   vec2 px = (scr - uShift) * uScale;
+  r *= uZoom * uScale;
+${M.GLSL_MIX}
   gl_Position = vec4(px.x / uRes.x * 2.0 - 1.0, 1.0 - px.y / uRes.y * 2.0, 0.0, 1.0);
-  float rp = max(r * uZoom * uScale * uDpr, 0.6);
+  float rp = max(r * uDpr, 0.6);
   vCol = col; vAlpha = alpha; vR = rp; vKind = kind; vSize = rp * 2.0 + 2.0;
   gl_PointSize = vSize;
 }`;
@@ -148,7 +152,7 @@ void main() {
   [['aA', 3, 0], ['aN', 3, 3], ['aB', 3, 6], ['aC', 4, 9], ['aM', 3, 13]].forEach(([n, size, off]) => {
     const loc = gl.getAttribLocation(prog, n); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 64, off * 4);
   });
-  const U = {}; ['uPhi', 'uZoom', 'uFocus', 'uScale', 'uDpr', 'uTime', 'uRes', 'uCenter', 'uShift'].forEach(n => U[n] = gl.getUniformLocation(prog, n));
+  const U = {}; ['uPhi', 'uZoom', 'uFocus', 'uScale', 'uDpr', 'uTime', 'uRes', 'uCenter', 'uShift', 'uMorph'].forEach(n => U[n] = gl.getUniformLocation(prog, n));
   const ibo = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
   const order = new Uint16Array(COUNT);
   gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.disable(gl.DEPTH_TEST); gl.clearColor(0, 0, 0, 0);
@@ -190,18 +194,60 @@ void main() {
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
     addEventListener('pointermove', e => { tx = e.clientX / innerWidth - 0.5; ty = e.clientY / innerHeight - 0.5; }, { passive: true });
   }
+  let morphBuf = null, mt0 = -1, lastP = null;
+  function params(now) {
+    const time = (now - t0) / 1000, p = Math.min(1, Math.max(0, scrollY / (hero.offsetHeight || 1)));
+    return { time, p, phi: time * 0.07 + p * 2.4 + mx * 0.35, zoom: 1 + p * 0.22, focus: -175 + p * 90, sx: shiftX + mx * 26, sy: shiftY + my * 18 - p * 90 };
+  }
+  /* Espelho em JS do vertex shader: posição, raio e cor de cada partícula na tela (para a transição entre páginas). */
+  function project(P) {
+    const c = Math.cos(P.phi), s = Math.sin(P.phi), xy = new Float32Array(2 * HELIX), r = new Float32Array(HELIX), col = new Float32Array(4 * HELIX);
+    const nl = Math.hypot(-0.50, -0.62, -0.60), Lx = -0.50 / nl, Ly = -0.62 / nl, Lz = -0.60 / nl, nl2 = Math.hypot(0.7, 0.35, 0.25), Rx = 0.7 / nl2, Ry = 0.35 / nl2, Rz = 0.25 / nl2;
+    const SH = [0.016, 0.172, 0.212], MID = [0.102, 0.659, 0.753], HI = [0.82, 0.97, 1.0], RIM = [0.157, 0.745, 0.843], FOG = [0.04, 0.176, 0.216];
+    for (let i = 0, o = 0; i < HELIX; i++, o += 16) {
+      const qx = buf[o + 9] * c - buf[o + 10] * s, qy = buf[o + 9] * s + buf[o + 10] * c;
+      const px = buf[o] + buf[o + 3] * qx + buf[o + 6] * qy, py = buf[o + 1] + buf[o + 4] * qx + buf[o + 7] * qy, pz = buf[o + 2] + buf[o + 5] * qx + buf[o + 8] * qy;
+      const mq = buf[o + 11] * c - buf[o + 12] * s, mr = buf[o + 11] * s + buf[o + 12] * c, nt = buf[o + 13];
+      const cx0 = buf[o + 4] * buf[o + 8] - buf[o + 5] * buf[o + 7], cy0 = buf[o + 5] * buf[o + 6] - buf[o + 3] * buf[o + 8], cz0 = buf[o + 3] * buf[o + 7] - buf[o + 4] * buf[o + 6];
+      let nx = buf[o + 3] * mq + buf[o + 6] * mr + cx0 * nt, ny = buf[o + 4] * mq + buf[o + 7] * mr + cy0 * nt, nz = buf[o + 5] * mq + buf[o + 8] * mr + cz0 * nt; const nn = Math.hypot(nx, ny, nz) || 1; nx /= nn; ny /= nn; nz /= nn;
+      const ps = 2600 / (2600 + pz), r0 = buf[o + 14] * ps, coc = Math.abs(pz - P.focus) * 0.026 * ps, rr = Math.sqrt(r0 * r0 + coc * coc);
+      let sx = (px - 1080) * ps + 1080, sy = (py - 675) * ps + 675;
+      sx = (sx - 1300) * P.zoom + 1300; sy = (sy - 480) * P.zoom + 480;
+      xy[2 * i] = (sx - P.sx) * scale; xy[2 * i + 1] = (sy - P.sy) * scale; r[i] = rr * P.zoom * scale;
+      const diff = Math.pow(Math.min(1, Math.max(0, 0.38 + 0.62 * (nx * Lx + ny * Ly + nz * Lz))), 1.4), rim = Math.pow(Math.min(1, Math.max(0, nx * Rx + ny * Ry + nz * Rz)), 2), d5 = Math.pow(diff, 5), b = buf[o + 15];
+      const fog = Math.min(0.8, Math.max(0, (pz - 200) / 2600));
+      for (let k = 0; k < 3; k++) {
+        let v = SH[k] + diff * (MID[k] - SH[k]) + d5 * (HI[k] - MID[k]) * 0.9 + rim * RIM[k] * 0.35;
+        v = b > 2 ? v * 0.4 + HI[k] * 1.15 : v * b;
+        col[4 * i + k] = v + (FOG[k] - v) * fog;
+      }
+      col[4 * i + 3] = Math.min(1, r0 * r0 / (rr * rr) * 1.35);
+    }
+    return { n: HELIX, xy, r, col };
+  }
+  /* transição: se veio de outra página com figura 3D, as partículas partem das posições dela */
+  {
+    const locS = gl.getAttribLocation(prog, 'aS'), locC = gl.getAttribLocation(prog, 'aSC'), old = M.enabled && M.load && M.load();
+    if (old && cw) morphBuf = M.prepare(old, project(params(performance.now())), COUNT);
+    if (morphBuf) {
+      const bS = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, bS); gl.bufferData(gl.ARRAY_BUFFER, morphBuf, gl.STATIC_DRAW);
+      [[locS, 0], [locC, 16]].forEach(([l, off]) => { if (l >= 0) { gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, 4, gl.FLOAT, false, 32, off); } });
+      media.classList.add('no-fade');
+    } else { if (locS >= 0) gl.vertexAttrib4f(locS, 0, 0, 0, -1); if (locC >= 0) gl.vertexAttrib4f(locC, 0, 0, 0, 0); }
+  }
+  addEventListener('pagehide', () => { if (M.enabled && M.save && live && visible && lastP) M.save(project(lastP)); });
   function draw(now) {
     running = false;
     if (!visible || document.hidden || !cw) return;
-    const time = (now - t0) / 1000;
-    const p = Math.min(1, Math.max(0, scrollY / (hero.offsetHeight || 1)));
     mx += (tx - mx) * 0.05; my += (ty - my) * 0.05;
-    const phi = time * 0.07 + p * 2.4 + mx * 0.35;
+    const P = lastP = params(now), phi = P.phi;
+    if (morphBuf && mt0 < 0) mt0 = now;
     sort(phi);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.uniform1f(U.uPhi, phi); gl.uniform1f(U.uZoom, 1 + p * 0.22); gl.uniform1f(U.uFocus, -175 + p * 90);
-    gl.uniform1f(U.uScale, scale); gl.uniform1f(U.uDpr, dpr); gl.uniform1f(U.uTime, time);
-    gl.uniform2f(U.uRes, cw, ch); gl.uniform2f(U.uCenter, 1300, 480); gl.uniform2f(U.uShift, shiftX + mx * 26, shiftY + my * 18 - p * 90);
+    gl.uniform1f(U.uMorph, morphBuf ? Math.min(1, (now - mt0) / M.DURATION) : 1);
+    gl.uniform1f(U.uPhi, phi); gl.uniform1f(U.uZoom, P.zoom); gl.uniform1f(U.uFocus, P.focus);
+    gl.uniform1f(U.uScale, scale); gl.uniform1f(U.uDpr, dpr); gl.uniform1f(U.uTime, P.time);
+    gl.uniform2f(U.uRes, cw, ch); gl.uniform2f(U.uCenter, 1300, 480); gl.uniform2f(U.uShift, P.sx, P.sy);
     gl.drawElements(gl.POINTS, COUNT, gl.UNSIGNED_SHORT, 0);
     if (!live) { live = true; media.classList.add('is-live'); }
     loop();

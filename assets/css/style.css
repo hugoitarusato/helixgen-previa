@@ -305,6 +305,19 @@ input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
 .phero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
 .phero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, rgba(7, 20, 23, 0.94) 25%, rgba(7, 20, 23, 0.35)); }
 .phero__in { position: relative; z-index: 1; }
+/* Faixa com forma 3D de partículas (Exames, Para clínicas, Sobre, Blog, Contato). Só a Home tem hero em tela cheia. */
+.phero--3d { min-height: clamp(30rem, 62vh, 40rem); display: flex; align-items: flex-end; padding-block: calc(var(--header-h) + clamp(2.5rem, 6vw, 5rem)) clamp(2.5rem, 5vw, 4.5rem); }
+.phero--3d::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 9rem; background: linear-gradient(to bottom, rgba(7, 20, 23, 0.7), rgba(7, 20, 23, 0)); z-index: 1; pointer-events: none; }
+.phero--3d::after { background: linear-gradient(to right, rgba(7, 20, 23, 0.88) 12%, rgba(7, 20, 23, 0.3) 42%, rgba(7, 20, 23, 0)); pointer-events: none; }
+.phero__media { position: absolute; inset: 0; background: radial-gradient(60% 70% at 66% 36%, #0e3a46, #051115 78%); }
+.phero__media .phero__bg { transition: opacity 900ms ease; }
+.phero__canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 900ms ease; }
+.phero__media.is-live .phero__canvas { opacity: 1; }
+.phero__media.is-live .phero__bg { opacity: 0; }
+/* chegada por transição de partículas: a figura já aparece, sem fade */
+.no-fade .phero__canvas, .no-fade .hero__canvas, .no-fade .phero__bg, .no-fade .hero__poster { transition: none; }
+@media (max-width: 47.99rem) { .phero--3d { min-height: 38rem; } .phero--3d::after { background: none; } }
+.phero__scrim { position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(to top, rgba(7, 20, 23, 0.94) 8%, rgba(7, 20, 23, 0.55) 55%, rgba(7, 20, 23, 0)); pointer-events: none; }
 .display--page { font-size: clamp(2.75rem, 1.2rem + 6.4vw, 6.75rem); max-width: 14ch; }
 .display--post { font-size: clamp(2rem, 1.3rem + 3vw, 3.75rem); line-height: 1.02; letter-spacing: -0.035em; max-width: 22ch; }
 .phero__lead { color: var(--color-on-dark-muted); font-size: var(--fs-lead); line-height: 1.45; max-width: 34rem; margin-top: clamp(1.25rem, 3vw, 2rem); }

@@ -19,8 +19,12 @@
 </head>
 <body>
 <main id="conteudo">
-<section class="phero" data-theme="dark">
-  <img class="phero__bg" src="assets/img/dna-hero-1080.webp" width="1080" height="675" alt="" style="object-position: 65% 35%">
+<section class="phero phero--3d" data-theme="dark">
+  <div class="phero__media" aria-hidden="true">
+    <img class="phero__bg" src="assets/img/dna-hero-1080.webp" width="1080" height="675" alt="" style="object-position: 65% 35%">
+    <canvas class="phero__canvas" id="forma" data-forma="contato"></canvas>
+  </div>
+  <div class="phero__scrim" aria-hidden="true"></div>
   <div class="wrap phero__in">
     
     <h1 class="display display--page" data-split>Fale com a HelixGen.</h1>
@@ -57,5 +61,7 @@
 <script src="assets/js/layout.js"></script>
 <script src="assets/js/lenis.min.js"></script>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/morph.js"></script>
+<script src="assets/js/shapes.js"></script>
 </body>
 </html>
